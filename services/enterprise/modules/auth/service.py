@@ -15,15 +15,18 @@ class AuthService:
     def login(self, user_request: UserRequest) -> UserResponse:
         user = self.user_service.get_user_by_email(user_request.email)
 
+        # If user does not exist, create one. This logic is robust against race conditions
+        # by attempting to create and then refetching the user.
         if not user:
-            user = self.user_service.add_user(user_request)
-            # if user still not found after trying to add, refetch
-            if not user:
-                user = self.user_service.get_user_by_email(user_request.email)
+            self.user_service.add_user(user_request)
+            user = self.user_service.get_user_by_email(user_request.email)
 
+        # After the creation/retrieval logic, user must be a valid object.
+        # Now, ensure the user has an organization.
         if user.organization_id:
             user_org_id = user.organization_id
         else:
+            # If no organization is associated, create one for the user.
             user_org_id = self.org_service.add_user_organization(user.id, user.email)
 
         # update user data from the login request cause it could have updates
