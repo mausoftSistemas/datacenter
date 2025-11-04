@@ -18,8 +18,16 @@ class AuthService:
         user = self.user_service.get_user_by_email(user_request.email)
 
         if not user:  # create the user and a new organization for the user
-            user = self.user_service.add_user(user_request)
-            user_org_id = self.org_service.add_user_organization(user.id, user.email)
+            new_user = self.user_service.add_user(user_request)
+            if new_user:
+                user = new_user
+                user_org_id = self.org_service.add_user_organization(
+                    user.id, user.email
+                )
+            else:
+                # If add_user returns None, it means the user already exists.
+                # So, we fetch the existing user.
+                user = self.user_service.get_user_by_email(user_request.email)
         elif user.organization_id is None:
             user_org_id = self.org_service.add_user_organization(user.id, user.email)
         else:
