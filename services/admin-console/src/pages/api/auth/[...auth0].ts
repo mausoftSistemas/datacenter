@@ -32,12 +32,8 @@ const afterCallback: AfterCallback = async (
     }
     session.user = sessionUser
   } catch (e: unknown) {
-    const error = e as Error
-    console.error(error)
-    res.writeHead(302, {
-      Location: `/auth/error?message=${encodeURIComponent(e as string)}`,
-    })
-    res.end()
+    console.error(e)
+    throw e
   }
   return session
 }
@@ -59,9 +55,5 @@ export default handleAuth({
   callback: handleCallback({ afterCallback }),
   onError(_: NextApiRequest, res: NextApiResponse, error: HandlerError) {
     console.error(error)
-    res.writeHead(302, {
-      Location: `/auth/error?message=${encodeURIComponent(error.message)}`,
-    })
-    res.end()
   },
 })
