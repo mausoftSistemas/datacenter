@@ -37,8 +37,8 @@ class Settings(BaseSettings):
 
 class DBSettings(BaseSettings):
     load_dotenv()
-
-    mongodb_uri: str = os.environ.get("DATABASE_URI")
+    # Prefer DATABASE_URI, but fall back to legacy MONGODB_URI if present
+    mongodb_uri: str = os.environ.get("DATABASE_URI") or os.environ.get("MONGODB_URI")
     mongodb_db_name: str = os.environ.get("MONGODB_DB_NAME")
 
     def __getitem__(self, key: str) -> Any:
@@ -58,8 +58,9 @@ class AWSS3Settings(BaseSettings):
 
 class AuthSettings(BaseSettings):
     load_dotenv()
-
-    auth_disabled: bool = os.environ.get("AUTH_DISABLED", False)
+    # Support both AUTH_DISABLED and legacy AUTH0_DISABLED, and coerce to bool safely
+    _auth_disabled_raw = os.environ.get("AUTH_DISABLED", os.environ.get("AUTH0_DISABLED", "False"))
+    auth_disabled: bool = str(_auth_disabled_raw).lower() in {"true", "1", "yes"}
 
     auth0_domain: str = os.environ.get("AUTH0_DOMAIN")
     auth0_algorithms: str = os.environ.get("AUTH0_ALGORITHMS", "RS256")

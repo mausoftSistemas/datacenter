@@ -80,11 +80,47 @@ class VerifyToken:
 
 class Authorize:
     def user(self, payload: dict) -> User:
-        sub = payload["sub"]
-        user = user_service.get_user_by_sub(sub)
-        if not user:
-            raise UnauthorizedUserError(email=sub)
-        return user
+        # Try by sub first
+        sub = payload.get("sub")
+        user = user_service.get_user_by_sub(sub) if sub else None
+        if user:
+            return user
+
+        # In disabled-auth mode, fall back to email and auto-provision user
+        if auth_settings.auth_disabled:
+            email_key = (auth_settings.auth0_issuer or "") + "email"
+            email = payload.get("email") or payload.get(email_key) or sub
+
+            if email:
+                existing = user_service.get_user_by_email(email)
+                if existing:
+                    return existing
+
+                try:
+                    # Create the user and organization mirroring login behavior
+                    from modules.auth.service import AuthService
+                    from modules.user.models.requests import UserRequest
+
+                    AuthService().login(
+                        UserRequest(
+                            **{
+                                "email": email,
+                                "name": email,
+                                "sub": sub or email,
+                                "email_verified": True,
+                            }
+                        )
+                    )
+
+                    created = user_service.get_user_by_email(email)
+                    if created:
+                        return created
+                except Exception:
+                    # Fall through to Unauthorized if provisioning fails
+                    pass
+
+        # If not found or not allowed, raise
+        raise UnauthorizedUserError(email=sub)
 
     def user_in_organization(self, user_id: str, org_id: str):
         if not MongoDB.find_one(
@@ -147,9 +183,26 @@ def get_auth_scheme():
 
 
 def authenticate_user(token=Security(get_auth_scheme())):
-    payload = (
-        {auth_settings.auth0_issuer + "email": token.credentials}
-        if auth_settings.auth_disabled
-        else VerifyToken(token.credentials).verify()
-    )
+    # When auth is disabled, accept either a raw email token or a JWT and
+    # decode it without signature verification to extract claims.
+    if auth_settings.auth_disabled:
+        raw = token.credentials or ""
+        claims = {}
+        if raw.count(".") == 2:  # likely a JWT
+            try:
+                claims = jwt.decode(
+                    raw,
+                    options={"verify_signature": False, "verify_aud": False, "verify_iss": False},
+                )
+            except Exception:
+                claims = {}
+
+        email_key = (auth_settings.auth0_issuer or "") + "email"
+        email = claims.get("email") or (raw if "@" in raw else None) or claims.get(email_key)
+        sub = claims.get("sub") or email or raw
+        payload = {"sub": sub, "email": email}
+        return Authorize().user(payload)
+
+    # Normal verified flow
+    payload = VerifyToken(token.credentials).verify()
     return Authorize().user(payload)
