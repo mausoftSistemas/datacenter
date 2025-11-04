@@ -38,7 +38,7 @@ class Settings(BaseSettings):
 class DBSettings(BaseSettings):
     load_dotenv()
 
-    mongodb_uri: str = os.environ.get("DB_URI")
+    mongodb_uri: str = os.environ.get("DATABASE_URI")
     mongodb_db_name: str = os.environ.get("MONGODB_DB_NAME")
 
     def __getitem__(self, key: str) -> Any:
