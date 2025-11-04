@@ -14,7 +14,5 @@ auth_service = AuthService()
 
 
 @router.post("/login", status_code=status.HTTP_202_ACCEPTED)
-def login(
-    user_request: UserRequest, token: str = Security(verify_token)  # noqa: ARG001
-) -> UserResponse:
+def login(user_request: UserRequest) -> UserResponse:
     return auth_service.login(user_request)
