@@ -48,7 +48,7 @@ tags_metadata = [
 
 app = FastAPI()
 
-app.add_middleware(UnknownErrorMiddleware)
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
