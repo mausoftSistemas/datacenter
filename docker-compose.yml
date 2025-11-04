@@ -5,6 +5,9 @@ services:
       dockerfile: dev.Dockerfile
     ports:
       - "3002:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://enterprise:3001
+      - AUTH0_BASE_URL=http://varios-bzp-dataherald.3150ox.easypanel.host
     restart: always
     networks:
       - dataherald_network
