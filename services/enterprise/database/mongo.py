@@ -12,7 +12,7 @@ DESCENDING = pymongo.DESCENDING
 class MongoDB:
     db_uri = db_settings.mongodb_uri
     db_name = db_settings.mongodb_db_name
-    _data_store = pymongo.MongoClient(db_uri, tz_aware=True)[db_name]
+    _data_store = pymongo.MongoClient(db_uri, tz_aware=True, connect=False)[db_name]
 
     @classmethod
     def find_one(cls, collection: str, query: dict, sort: list = None) -> dict:
