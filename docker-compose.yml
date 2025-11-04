@@ -55,6 +55,9 @@ services:
     working_dir: /app
     ports:
       - "3005:3005"
+    environment:
+      - SLACK_SIGNING_SECRET=TU_SIGNING_SECRET
+      - SLACK_BOT_TOKEN=TU_BOT_TOKEN
     volumes:
       - ./services/slackbot:/app
       - /app/node_modules
