@@ -57,7 +57,9 @@ services:
     volumes:
       - ./services/enterprise:/app
     networks:
-      - dataherald_network
+      dataherald_network:
+        aliases:
+          - api
 
 #  slackbot:
 #    build:
