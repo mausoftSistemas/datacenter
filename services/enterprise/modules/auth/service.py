@@ -13,25 +13,18 @@ class AuthService:
         self.analytics = Analytics()
 
     def login(self, user_request: UserRequest) -> UserResponse:
-        # check if user exists or not
-        user_org_id = None
         user = self.user_service.get_user_by_email(user_request.email)
 
-        if not user:  # create the user and a new organization for the user
-            new_user = self.user_service.add_user(user_request)
-            if new_user:
-                user = new_user
-                user_org_id = self.org_service.add_user_organization(
-                    user.id, user.email
-                )
-            else:
-                # If add_user returns None, it means the user already exists.
-                # So, we fetch the existing user.
+        if not user:
+            user = self.user_service.add_user(user_request)
+            # if user still not found after trying to add, refetch
+            if not user:
                 user = self.user_service.get_user_by_email(user_request.email)
-        elif user.organization_id is None:
-            user_org_id = self.org_service.add_user_organization(user.id, user.email)
-        else:
+
+        if user.organization_id:
             user_org_id = user.organization_id
+        else:
+            user_org_id = self.org_service.add_user_organization(user.id, user.email)
 
         # update user data from the login request cause it could have updates
         # TODO - when we add user data customization, we should stop doing this
