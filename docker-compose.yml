@@ -12,7 +12,7 @@ services:
       - AUTH0_CLIENT_ID=aVrjY0hHTyZBSwBQ64vVBeolilKP2FuW
       - AUTH0_CLIENT_SECRET=5UWo4y8iBk2w3jXlbojoGI730SV_pa_yOXCpvTGe4itcSTR47877kBACSpMYS97L
       - AUTH0_SECRET=a2b1c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2
-      - AUTH0_SCOPE='openid profile email'
+      - AUTH0_SCOPE=openid profile email
       - AUTH0_API_AUDIENCE=https://api.dataherald.com
     restart: always
     networks:
