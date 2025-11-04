@@ -1,0 +1,78 @@
+services:
+  admin-console:
+    build:
+      context: ./services/admin-console
+      dockerfile: dev.Dockerfile
+    ports:
+      - "3000:3000"
+    restart: always
+    networks:
+      - dataherald_network
+    volumes:
+      - ./services/admin-console/src:/app/src
+      - ./services/admin-console/public:/app/public
+
+  engine:
+    build:
+      context: ./services/engine
+      dockerfile: Dockerfile
+    ports:
+      - "8080:80"
+    environment:
+      - CORE_PORT=80
+    command: uvicorn dataherald.app:app --host 0.0.0.0 --port 80 --log-config log_config.yml --log-level debug --reload
+    stdin_open: true
+    tty: true
+    volumes:
+      - ./services/engine/dataherald:/app/dataherald
+    depends_on:
+      - mongodb
+    networks:
+      - dataherald_network
+
+  mongodb:
+    image: mongo:latest
+    restart: always
+    ports:
+      - "27017:27017"
+    volumes:
+      - ./services/engine/initdb.d/init-mongo.sh:/docker-entrypoint-initdb.d/init-mongo.sh:ro
+      - ./data/db:/data/db
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: "${MONGODB_DB_USERNAME}"
+      MONGO_INITDB_ROOT_PASSWORD: "${MONGODB_DB_PASSWORD}"
+      MONGO_INITDB_DATABASE: "${MONGODB_DB_NAME}"
+    networks:
+      - dataherald_network
+
+  enterprise:
+    build:
+      context: ./services/enterprise
+      dockerfile: Dockerfile
+    working_dir: /app
+    ports:
+      - "3001:3001"
+    command: uvicorn app:app --host 0.0.0.0 --port 3001 --log-level debug --reload
+    stdin_open: true
+    tty: true
+    volumes:
+      - ./services/enterprise:/app
+    networks:
+      - dataherald_network
+
+  slackbot:
+    build:
+      context: ./services/slackbot
+      dockerfile: Dockerfile
+    working_dir: /app
+    ports:
+      - "3005:3005"
+    volumes:
+      - ./services/slackbot:/app
+      - /app/node_modules
+    networks:
+      - dataherald_network
+
+networks:
+  dataherald_network:
+    driver: bridge
