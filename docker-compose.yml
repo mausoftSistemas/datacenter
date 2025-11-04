@@ -7,11 +7,11 @@ services:
       - "3002:3000"
     environment:
       - NEXT_PUBLIC_API_URL=http://enterprise:3001
-      - AUTH0_BASE_URL=
-      - AUTH0_ISSUER_BASE_URL=
-      - AUTH0_CLIENT_ID=
-      - AUTH0_CLIENT_SECRET=
-      - AUTH0_SECRET=
+      - AUTH0_BASE_URL=http://varios-bzp-dataherald.3150ox.easypanel.host
+      - AUTH0_ISSUER_BASE_URL=https://dev-0lwfti2kw12d1jm0.us.auth0.com/
+      - AUTH0_CLIENT_ID=aVrjY0hHTyZBSwBQ64vVBeolilKP2FuW
+      - AUTH0_CLIENT_SECRET=5UWo4y8iBk2w3jXlbojoGI730SV_pa_yOXCpvTGe4itcSTR47877kBACSpMYS97L
+      - AUTH0_SECRET=a2b1c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2
     restart: always
     networks:
       - dataherald_network
@@ -47,8 +47,8 @@ services:
     environment:
       - MONGODB_DB_NAME=dataherald
       - DB_URI=mongodb://mongo:421bed53ee31ad9bc4c9@varios_bzp-mongo/dataherald
-      - AUTH0_DOMAIN=
-      - AUTH0_API_AUDIENCE=
+      - AUTH0_DOMAIN=dev-0lwfti2kw12d1jm0.us.auth0.com
+      - AUTH0_API_AUDIENCE=https://api.dataherald.com
     command: uvicorn app:app --host 0.0.0.0 --port 3001 --log-level debug --reload
     stdin_open: true
     tty: true
